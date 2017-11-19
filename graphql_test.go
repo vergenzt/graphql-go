@@ -207,6 +207,43 @@ func TestHelloSnakeArguments(t *testing.T) {
 	})
 }
 
+func TestNoSchemaDeclaration(t *testing.T) {
+	_, got := graphql.ParseSchema(`type Query { shouldFail: Boolean! }`, nil)
+	want := `graphql: "schema" entry point declaration missing or empty`
+	if got.Error() != want {
+		t.Logf("got:  %s", got)
+		t.Logf("want: %s", want)
+		t.Fail()
+	}
+}
+
+func TestNoQueryDeclaration(t *testing.T) {
+	_, got := graphql.ParseSchema(`schema { }`, nil)
+	want := `graphql: "schema" entry point declaration missing or empty`
+	if got.Error() != want {
+		t.Logf("got:  %s", got)
+		t.Logf("want: %s", want)
+		t.Fail()
+	}
+}
+
+func TestOnlyMutationDeclaration(t *testing.T) {
+	_, got := graphql.ParseSchema(`
+		schema {
+			mutation: Mutation
+		}
+		type Mutation {
+			test: Boolean!
+		}
+	`, nil)
+	want := `graphql: "schema" declaration did not include required "query" field`
+	if got.Error() != want {
+		t.Logf("got:  %s", got)
+		t.Logf("want: %s", want)
+		t.Fail()
+	}
+}
+
 func TestBasic(t *testing.T) {
 	gqltesting.RunTests(t, []*gqltesting.Test{
 		{

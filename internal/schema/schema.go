@@ -155,6 +155,22 @@ func New() *Schema {
 }
 
 func (s *Schema) Parse(schemaString string) error {
+	err := s.parseWithoutEntryPoints(schemaString)
+	if err != nil {
+		return err
+	}
+
+	if hasSchema := len(s.EntryPoints) > 0; !hasSchema {
+		return errors.Errorf(`"schema" entry point declaration missing or empty`)
+	}
+	if _, hasQuery := s.EntryPoints["query"]; !hasQuery {
+		return errors.Errorf(`"schema" declaration did not include required "query" field`)
+	}
+
+	return nil
+}
+
+func (s *Schema) parseWithoutEntryPoints(schemaString string) error {
 	sc := &scanner.Scanner{
 		Mode: scanner.ScanIdents | scanner.ScanInts | scanner.ScanFloats | scanner.ScanStrings,
 	}
